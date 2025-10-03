@@ -1,0 +1,21 @@
+name: cdai
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - jupyterlab
+  - ipykernel
+  - ipywidgets
+  - pandas
+  - numpy
+  - plotly
+  - matplotlib
+  - seaborn
+  - scikit-learn
+  - python-dotenv
+  - pip
+  - pip:
+    - pydantic-ai
+    - openai
+    - pydantic>=2.0
