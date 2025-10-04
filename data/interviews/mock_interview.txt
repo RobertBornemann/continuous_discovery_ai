@@ -1,0 +1,47 @@
+﻿Interviewer: Thanks for making the time today. I know you’ve been working with our API pretty regularly. Before I ask anything specific, could you just tell me about what you’ve been building recently that relied on it?
+Interviewee: Sure. Right now I’m working on a feature that generates custom reports for clients. We’re pulling transaction data through your API and then filtering it down to what’s relevant for them.
+Interviewer: And when you started on that, how did you approach the integration?
+Interviewee: First step was the docs. I usually open them side by side with my IDE. I try a couple of sample requests, see what comes back, and then figure out how to fit it into our pipeline.
+Interviewer: How smooth was that for you this time around?
+Interviewee: The basic call worked. But once I looked closer, there were way more fields than I expected. Some are self-explanatory, some are not. I ended up dumping the response into a JSON viewer and going field by field.
+Interviewer: How did you decide which fields to actually use?
+Interviewee: Honestly, guesswork. Trial and error. Sometimes the name matches what I need, sometimes not. If I can’t figure it out, I search through our old repos to see how we used it before.
+Interviewer: That sounds a bit like detective work. Does that happen often?
+Interviewee: Pretty often, yeah. It’s kind of routine now.
+Interviewer: And what’s it like when you run into that situation?
+Interviewee: It slows me down. I know I’ll get it eventually, but it’s wasted cycles.
+Interviewer: Have you found ways to make that process quicker for yourself?
+Interviewee: Sometimes I write little scripts to experiment. Other times I ping your team in Slack. But then I’m waiting for a reply, so it depends.
+Interviewer: Got it. Switching gears a little — can you think of a time where using the API felt more frustrating than usual?
+Interviewee: Yeah, pagination last week. I kept getting “invalid cursor.” I couldn’t tell if I formatted it wrong or if it expired or what. The error message didn’t explain.
+Interviewer: What did you end up doing?
+Interviewee: Tried a bunch of variations until it stopped complaining. Took me a while.
+Interviewer: If the message had been clearer, how would that have changed your approach?
+Interviewee: I’d have fixed it in five minutes instead of an hour.
+Interviewer: Makes sense. On the flip side, is there a time where the API surprised you in a good way?
+Interviewee: Yeah, performance. We were worried about high-volume queries, but it held up really well under load. That was a pleasant surprise.
+Interviewer: Interesting. Do you remember how that affected your work at the time?
+Interviewee: Honestly, it meant we didn’t have to build extra caching layers. We could trust it to respond fast enough.
+Interviewer: If you imagine the “perfect” version of this API, what would be different from today?
+Interviewee: First thing: consistency. Right now, some endpoints return arrays, others wrap everything in an object with metadata. It’s small, but it adds friction. If they all looked the same, onboarding new devs would be way smoother.
+Interviewer: And when onboarding is smoother, what does that do for you and your team?
+Interviewee: Less time teaching quirks. New people can contribute faster. I don’t have to explain the “gotchas” every time.
+Interviewer: Are there things outside of the request/response flow that you’d like but don’t currently have?
+Interviewee: Definitely. Observability. Right now, if something goes wrong, I only notice when logs blow up or when a customer reports it. I’d love to see metrics: latency, error rates, success ratios.
+Interviewer: And what difference would that make in your day-to-day?
+Interviewee: I’d catch problems earlier. Be proactive instead of reactive.
+Interviewer: How do you handle testing right now?
+Interviewee: That’s tricky. There isn’t a real sandbox. So we either mock responses, which doesn’t feel realistic, or we test against production and hope for the best.
+Interviewer: Has that ever backfired?
+Interviewee: Yeah, once we polluted real data by mistake. Had to clean it up. Stressful.
+Interviewer: If you had a sandbox tomorrow, how would you actually use it?
+Interviewee: I’d spin up scenarios, try edge cases, test bulk operations. Right now I avoid those tests because they’re too risky in prod.
+Interviewer: Bulk operations — tell me more about that.
+Interviewee: Right now I have to loop through records one by one. If there was a bulk endpoint, I could just send a batch request. That’d cut down code complexity and execution time.
+Interviewer: Got it. Looking at the bigger picture: when you think about this API, what role does it play in your work?
+Interviewee: It’s like plumbing. It delivers the data I need. I don’t want to think about it. I just want it to be invisible and reliable.
+Interviewer: And when it’s not invisible?
+Interviewee: Then I’m an “API detective” instead of a product developer.
+Interviewer: That’s a nice way of putting it. Anything I haven’t asked that you think I should know?
+Interviewee: No, I think that’s it. Just: it works, it’s stable, but the paper cuts add up — errors, inconsistencies, lack of sandbox, no metrics.
+Interviewer: Super helpful. Thanks for being so candid.
