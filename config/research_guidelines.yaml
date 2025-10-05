@@ -1,0 +1,96 @@
+frameworks:
+  
+  jobs_to_be_done: |
+    Focus on the progress users want to make, not the products they want.
+    Extract what they're trying to accomplish (functional job), how they want to feel (emotional job), and how they want to be perceived (social job).
+    Avoid capturing solutions - focus on the underlying need.
+  
+  continuous_discovery: |
+    Prioritize insights that are recent, frequent, and specific.
+    Recent examples (last 3 months) over old memories.
+    Frequent problems (daily/weekly) over one-time issues.
+    Specific stories ("Last Tuesday I spent 2 hours...") over vague statements ("It's usually hard").
+  
+  mom_test: |
+    Value concrete past behavior over hypothetical future intentions.
+    Look for what they actually DID, not what they SAY they would do.
+    Good signals: "Last time I...", "Yesterday I...", specific dates/examples.
+    Weak signals: "I would...", "I think I'd...", "In the future..."
+
+  mental_models: |
+    Identify how users conceptualize and think about their work.
+    Mental models reveal:
+    - How they categorize and organize information
+    - What metaphors or analogies they use
+    - Their assumptions about how things work or should work
+    - Gaps between their mental model and reality (source of friction)
+    
+    Look for phrases like:
+    - "I think of it as..."
+    - "It's like..."
+    - "The way it works is..."
+    - Categorization language: "I group these by...", "I organize..."
+    - Cause-effect beliefs: "When X happens, Y should..."
+    
+    Mismatches between user's mental model and the actual system cause confusion and errors.
+
+# ==============================================================================
+# PRIVACY ENFORCEMENT (GDPR Compliance)
+# ==============================================================================
+
+privacy_enforcement:
+  
+  pii_removal:
+    enabled: true
+    description: "Automatic PII removal before LLM processing"
+  
+    patterns:
+      # More permissive email pattern
+      email: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+      
+      # International phone with country code
+      phone: '\+?\d{1,3}[\s-]?\d{2,4}[\s-]?\d{2,4}[\s-]?\d{2,4}'
+      
+      # Employee/User IDs
+      employee_id: '(EMP|emp|user)[-_]?\d{4,}'
+      
+      # German names (more flexible - catches single names too)
+      names: '[A-ZÄÖÜ][a-zäöüß]+(?:\s+[A-ZÄÖÜ][a-zäöüß]+)*'
+      
+      # IBAN
+      iban: '[A-Z]{2}\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{0,2}'
+      
+      # API tokens/keys
+      api_token: '(sk_test_|sk_live_|pk_test_|pk_live_)[a-zA-Z0-9]+'
+    
+    replacement_tokens:
+      email: "[EMAIL]"
+      phone: "[PHONE]"
+      employee_id: "[ID]"
+      names: "[NAME]"
+      iban: "[IBAN]"
+      api_token: "[API_KEY]"
+
+# ==============================================================================
+# VALIDATION RULES (Post-processing checks)
+# ==============================================================================
+
+validation:
+  
+  pii_checks:
+    enabled: true
+    block_on_failure: true  # Prevent saving if PII detected
+    checks:
+      - "No email addresses in output"
+      - "No phone numbers in output"
+      - "No employee IDs in output"
+      - "No full names in output"
+  
+  data_classification:
+    enabled: true
+    auto_classify: true
+    levels:
+      - public
+      - internal
+      - confidential
+      - restricted
