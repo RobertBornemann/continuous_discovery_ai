@@ -69,24 +69,30 @@ def display_results(insights):
 
 async def analyze_command(args):
     """Execute the analyze command."""
-    # Check if file exists
     if not Path(args.file).exists():
         print(f"ERROR: File not found: {args.file}")
         sys.exit(1)
     
-    # Initialize analyzer
-    print(f"Initializing analyzer with config: {args.config}")
     analyzer = InterviewAnalyzer(config_path=args.config)
     
-    # Analyze file
-    print(f"Analyzing: {args.file}")
-    insights = await analyzer.analyze_file(
-        args.file,
-        audit=not args.no_audit,
-        validate=not args.no_validate
-    )
+    # Handle audio or text
+    if args.audio:
+        print(f"Transcribing audio: {args.file}")
+        insights = await analyzer.analyze_audio_file(
+            args.file,
+            language=args.language,
+            audit=not args.no_audit,
+            validate=not args.no_validate,
+            save_transcript=args.save_transcript
+        )
+    else:
+        print(f"Analyzing text: {args.file}")
+        insights = await analyzer.analyze_file(
+            args.file,
+            audit=not args.no_audit,
+            validate=not args.no_validate
+        )
     
-    # Display results
     display_results(insights)
     
     # Save to file if requested
@@ -144,7 +150,21 @@ Examples:
         action='store_true',
         help='Skip PII validation after processing'
     )
-    
+
+    analyze_parser.add_argument(
+        '--audio',
+        action='store_true',
+        help='Input file is audio (will transcribe first)'
+    )
+    analyze_parser.add_argument(
+        '--language',
+        help='Language code for transcription (e.g., en, de)'
+    )
+    analyze_parser.add_argument(
+        '--save-transcript',
+        help='Save transcript to file'
+    )
+	    
     # Parse arguments
     args = parser.parse_args()
     

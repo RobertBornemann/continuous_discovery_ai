@@ -10,6 +10,8 @@ from .agents import create_insight_agent
 from .privacy import enforce_pii_removal, validate_no_pii, audit_pii_in_transcript
 from .models import InterviewInsights
 
+from .transcription import transcribe_audio
+
 
 class InterviewAnalyzer:
     """
@@ -98,4 +100,27 @@ class InterviewAnalyzer:
             Extracted interview insights
         """
         transcript = self.load_transcript(filepath)
+        return await self.analyze(transcript, audit=audit, validate=validate)
+
+
+    async def analyze_audio_file(
+        self,
+        audio_path: str,
+        language: Optional[str] = None,
+        audit: bool = True,
+        validate: bool = True,
+        save_transcript: Optional[str] = None
+
+    ) -> InterviewInsights:
+
+        # Transcribe audio
+        transcript = transcribe_audio(audio_path, language=language)
+        
+        # Optionally save transcript
+        if save_transcript:
+            with open(save_transcript, 'w') as f:
+                f.write(transcript)
+            print(f"Transcript saved to: {save_transcript}")
+        
+        # Analyze transcript
         return await self.analyze(transcript, audit=audit, validate=validate)
