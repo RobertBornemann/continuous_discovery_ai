@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from dotenv import load_dotenv
 import os
-
+from discovery.exporter import print_mural_export
 from discovery import InterviewAnalyzer
 
 
@@ -93,7 +93,10 @@ async def analyze_command(args):
             validate=not args.no_validate
         )
     
-    display_results(insights)
+    sif args.mural:
+        print_mural_export(insights)
+    else:
+        display_results(insights)
     
     # Save to file if requested
     if args.output:
@@ -164,6 +167,11 @@ Examples:
         '--save-transcript',
         help='Save transcript to file'
     )
+    analyze_parser.add_argument(
+    '--mural',
+    action='store_true',
+    help='Output in Mural/Miro format (separate text blocks)'
+)
 	    
     # Parse arguments
     args = parser.parse_args()

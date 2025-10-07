@@ -1,8 +1,6 @@
 """
 Test the discovery package end-to-end.
 """
-
-
 import asyncio
 from dotenv import load_dotenv
 import os

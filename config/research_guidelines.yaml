@@ -34,9 +34,7 @@ frameworks:
     
     Mismatches between user's mental model and the actual system cause confusion and errors.
 
-# ==============================================================================
 # PRIVACY ENFORCEMENT (GDPR Compliance)
-# ==============================================================================
 
 privacy_enforcement:
   
@@ -71,9 +69,7 @@ privacy_enforcement:
       iban: "[IBAN]"
       api_token: "[API_KEY]"
 
-# ==============================================================================
 # VALIDATION RULES (Post-processing checks)
-# ==============================================================================
 
 validation:
   

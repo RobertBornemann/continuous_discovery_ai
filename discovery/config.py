@@ -8,15 +8,6 @@ from typing import Dict, Any
 
 
 def load_guidelines(config_path: str = "config/research_guidelines.yaml") -> Dict[str, Any]:
-    """
-    Load research guidelines from YAML file.
-    
-    Args:
-        config_path: Path to YAML configuration file
-        
-    Returns:
-        Dictionary containing guidelines configuration
-    """
     path = Path(config_path)
     
     if not path.exists():
@@ -29,15 +20,6 @@ def load_guidelines(config_path: str = "config/research_guidelines.yaml") -> Dic
 
 
 def build_system_prompt(guidelines: Dict[str, Any]) -> str:
-    """
-    Build system prompt from guidelines configuration.
-    
-    Args:
-        guidelines: Guidelines dictionary from load_guidelines()
-        
-    Returns:
-        Formatted system prompt string
-    """
     prompt = "You are an expert product researcher.\n\n"
     prompt += "APPLY THESE FRAMEWORKS:\n\n"
     

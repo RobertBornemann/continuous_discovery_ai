@@ -14,31 +14,12 @@ from .transcription import transcribe_audio
 
 
 class InterviewAnalyzer:
-    """
-    Orchestrates the complete interview analysis workflow.
-    """
-    
     def __init__(self, config_path: str = "config/research_guidelines.yaml"):
-        """
-        Initialize analyzer with configuration.
-        
-        Args:
-            config_path: Path to research guidelines YAML
-        """
         self.guidelines = load_guidelines(config_path)
         self.agent = create_insight_agent(self.guidelines)
         self.privacy_rules = self.guidelines['privacy_enforcement']
     
     def load_transcript(self, filepath: str) -> str:
-        """
-        Load interview transcript from file.
-        
-        Args:
-            filepath: Path to transcript file
-            
-        Returns:
-            Transcript text
-        """
         path = Path(filepath)
         if not path.exists():
             raise FileNotFoundError(f"Transcript not found: {filepath}")
@@ -52,17 +33,6 @@ class InterviewAnalyzer:
         audit: bool = True,
         validate: bool = True
     ) -> InterviewInsights:
-        """
-        Analyze interview transcript with privacy enforcement.
-        
-        Args:
-            transcript: Interview text to analyze
-            audit: Whether to audit PII before processing
-            validate: Whether to validate output for PII
-            
-        Returns:
-            Extracted interview insights
-        """
         # Optional: Audit PII in original transcript
         if audit:
             audit_pii_in_transcript(transcript, self.privacy_rules)
@@ -88,17 +58,7 @@ class InterviewAnalyzer:
         audit: bool = True,
         validate: bool = True
     ) -> InterviewInsights:
-        """
-        Analyze interview from file.
-        
-        Args:
-            filepath: Path to transcript file
-            audit: Whether to audit PII before processing
-            validate: Whether to validate output for PII
-            
-        Returns:
-            Extracted interview insights
-        """
+
         transcript = self.load_transcript(filepath)
         return await self.analyze(transcript, audit=audit, validate=validate)
 
