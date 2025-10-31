@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from discovery import InterviewAnalyzer
+from fastapi import FastAPI, HTTPException, Request, Header, Query
 
 DEMO_PATH = Path("data/interviews/mock_interview.txt")
 CACHE_PATH = Path("data/interviews/demo_cache.json")
