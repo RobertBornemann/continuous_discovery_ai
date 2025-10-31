@@ -17,8 +17,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://<your-vercel-app>.vercel.app",
-        "https://<your-prod-domain>",
+        "https://capability-portfolio-otnv.vercel.app",
+        "https://www.robertbornemann.de",
     ],
     allow_methods=["POST", "GET", "OPTIONS"],
     allow_headers=["*"],
