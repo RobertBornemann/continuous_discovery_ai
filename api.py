@@ -24,15 +24,23 @@ class DemoResponse(BaseModel):
 
 HERE = Path(__file__).parent
 VARIANT_MAP = {
-    "sensitive": HERE / "data" / "interviews" / "sensitive.txt",
     "sanitized": HERE / "data" / "interviews" / "sanitized.txt",
+    "sensitive": HERE / "data" / "interviews" / "sensitive.txt",
 }
 
 def load_demo_text(variant: str) -> str:
-    path = VARIANT_MAP.get(variant)
-    if not path or not path.exists():
-        raise HTTPException(400, f"Unknown variant '{variant}'. Use 'sensitive' or 'sanitized'.")
-    return path.read_text(encoding="utf-8")
+    # distinguish bad variant vs missing file
+    if variant not in VARIANT_MAP:
+        raise HTTPException(400, f"Unknown variant '{variant}'. Allowed: {list(VARIANT_MAP)}")
+    p = VARIANT_MAP[variant]
+    if not p.exists():
+        raise HTTPException(500, f"Variant '{variant}' file missing at {p}. "
+                                 "Check that it's committed to Git and deployed.")
+    return p.read_text(encoding="utf-8")
+
+@app.get("/debug/variants")
+def debug_variants():
+    return {k: {"path": str(p), "exists": p.exists()} for k, p in VARIANT_MAP.items()}
 
 def cache_key_for(text: str, variant: str, guidelines_key: str = "") -> str:
     raw = f"{variant}::{guidelines_key}::{text}"
