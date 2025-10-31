@@ -5,6 +5,17 @@ from fastapi import FastAPI, HTTPException, Request, Header, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI
+from discovery import InterviewAnalyzer
+
+# Global analyzer instance
+analyzer: InterviewAnalyzer | None = None
+
+@app.on_event("startup")
+async def _init_analyzer():
+    """Initialize the InterviewAnalyzer once when the app boots."""
+    global analyzer
+    analyzer = InterviewAnalyzer()
+
 
 app = FastAPI(title="Discovery AI Demo API")
 
