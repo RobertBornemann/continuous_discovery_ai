@@ -11,6 +11,11 @@ CACHE_PATH = Path("data/interviews/demo_cache.json")
 app = FastAPI(title="Discovery AI Demo API")
 analyzer = InterviewAnalyzer()
 
+
+@app.get("/healthz")
+def healthz():
+    return {"ok": True, "has_openai_key": bool(os.getenv("OPENAI_API_KEY"))}
+
 class DemoResponse(BaseModel):
     run_id: str
     steps: list[str]
