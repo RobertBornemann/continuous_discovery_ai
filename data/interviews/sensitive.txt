@@ -1,0 +1,35 @@
+﻿Interviewer: Thanks for joining today. As before, I just want to hear how you’ve been working with our API, what’s been smooth, and where things get bumpy. Let’s start with your most recent project — what were you building?
+Interviewee: Sure. I was working on a client onboarding flow for one of our enterprise accounts — you probably know them, Müller Pharma GmbH. They wanted automated pulls of employee records, so we integrated your /users endpoint.
+Interviewer: And what did that integration process look like for you?
+Interviewee: Well, I had to map their HR system IDs to ours. For example, I was matching their user lisa.schneider@muellerpharma.de with our internal UID. I tested by sending requests with her email in the payload.
+Interviewer: And how did that go?
+Interviewee: Technically it worked. But again, the docs didn’t say clearly which field was required. I first sent just the email, then I added employeeNumber=87233119, then eventually both. Took me three tries.
+Interviewer: What’s that like when you hit those bumps?
+Interviewee: Frustrating. Especially because we’re under pressure to comply with GDPR. We’re moving sensitive stuff — emails, phone numbers, even IBANs sometimes — through your API. If I don’t know exactly how to format it, I’m stuck.
+Interviewer: What’s your workaround when the docs don’t give you enough?
+Interviewee: Honestly? I just try live calls. For example, I used my own company email marco.fischer@ourbankingapp.com as a test account, just to see what fields would accept. Sometimes I paste in test tokens too, like sk_test_4eC39HqLyjWDarjtT1zdp7dc.
+Interviewer: And does that feel safe to you?
+Interviewee: Not really, no. I know I shouldn’t be sending real emails or tokens into logs, but without a sandbox I don’t have a choice.
+Interviewer: So no sandbox has a real impact then?
+Interviewee: Huge. I can’t use fake data realistically. I end up using actual customers — like jens.bauer@kundenportal.de or even their phone numbers like +49 172 44556677. And if I screw up, that ends up in production logs.
+Interviewer: That sounds risky. Has it ever caused bigger problems?
+Interviewee: Yeah, once. I accidentally triggered a password reset email for a test account belonging to katrin.meier@biginsurance.com. She actually called us, asking why she got the email. Super embarrassing.
+Interviewer: Wow. And how did you handle that?
+Interviewee: We apologized, explained it was an internal test. But it’s exactly why we need a non-production environment.
+Interviewer: Besides the sandbox issue, what else slows you down?
+Interviewee: Error messages. For example, I sent a batch request with ten customer records. One had a malformed IBAN — DE89 3704 0044 0532 0130 00 without spaces — and the whole batch failed. The response just said “invalid input.” Which one? No idea.
+Interviewer: If that had been clearer?
+Interviewee: I’d have fixed that one line instead of combing through all ten.
+Interviewer: Makes sense. How do you usually debug when that happens?
+Interviewee: I log the payload. Which means sometimes I’m logging stuff like names, emails, even credit card BIN ranges. I know it’s not GDPR-compliant, but I don’t see another way.
+Interviewer: Understood. Switching gears — can you tell me about a time the API really worked well?
+Interviewee: Performance. We were loading 20,000 customer profiles — with emails like anna.keller@supermarkt24.de and thomas.schulz@travelio.com — and the response time stayed under 500ms. That was impressive.
+Interviewer: And a time when it didn’t?
+Interviewee: When we had to delete accounts. The DELETE /users endpoint requires the userId and email. I accidentally sent a production ID — user-119992 linked to michael.kruger@autohaus.de — in staging, and it actually removed his account in prod.
+Interviewer: Ouch. What would have prevented that?
+Interviewee: A clear separation between environments. And safer defaults.
+Interviewer: If you imagine the API being “perfect,” what would that look like?
+Interviewee: Consistent responses, detailed error messages, and definitely a sandbox with realistic fake data. Plus, tools for observing usage — like, I’d love to see when a request with julia.weber@finanzplus.de fails and why, without having to grep through logs.
+Interviewer: Last question — when you think about the role this API plays in your work, how do you see it?
+Interviewee: It’s the backbone. It’s how I move sensitive customer information — emails, phone numbers, account IDs — between systems. So if it’s clunky, it’s not just annoying, it’s dangerous.
+Interviewer: That’s a strong statement. Thanks for being so open. This was very valuable.
