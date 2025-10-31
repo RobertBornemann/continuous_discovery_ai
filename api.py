@@ -1,25 +1,18 @@
-# --- imports you need at top (some you already have) ---
+# api.py (top)
 import os, json, time, asyncio, inspect, logging, traceback
 from pathlib import Path
+from typing import Optional
 from fastapi import FastAPI, HTTPException, Request, Header, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI
-from discovery import InterviewAnalyzer
 
-# Global analyzer instance
-analyzer: InterviewAnalyzer | None = None
+from discovery import InterviewAnalyzer  # your class
 
-@app.on_event("startup")
-async def _init_analyzer():
-    """Initialize the InterviewAnalyzer once when the app boots."""
-    global analyzer
-    analyzer = InterviewAnalyzer()
-
-
+# 1) Create the app first
 app = FastAPI(title="Discovery AI Demo API")
 
-# CORS – adjust to your origins
+# 2) CORS (adjust origins)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -31,23 +24,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 3) Globals & paths
 HERE = Path(__file__).parent
-
-# == Fixed server-side inputs ==
 VARIANT_MAP = {
     "sanitized": HERE / "data" / "interviews" / "sanitized.txt",
     "sensitive": HERE / "data" / "interviews" / "sensitive.txt",
 }
-
-def load_demo_text(variant: str) -> str:
-    if variant not in VARIANT_MAP:
-        raise HTTPException(400, f"Unknown variant '{variant}'. Allowed: {list(VARIANT_MAP)}")
-    p = VARIANT_MAP[variant]
-    if not p.exists():
-        raise HTTPException(500, f"Variant '{variant}' file missing at {p}. Commit & redeploy.")
-    return p.read_text(encoding="utf-8")
-
-# == Writable cache location ==
 CACHE_DIR = Path(os.getenv("CACHE_DIR", "/tmp/discovery_cache"))
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -59,7 +41,24 @@ def cache_key_for(text: str, guidelines_key: str = "", variant: str = "") -> str
     raw = f"{variant}::{guidelines_key}::{text}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
-# tiny health + debug
+def load_demo_text(variant: str) -> str:
+    if variant not in VARIANT_MAP:
+        raise HTTPException(400, f"Unknown variant '{variant}'. Allowed: {list(VARIANT_MAP)}")
+    p = VARIANT_MAP[variant]
+    if not p.exists():
+        raise HTTPException(500, f"Variant '{variant}' file missing at {p}. Commit & redeploy.")
+    return p.read_text(encoding="utf-8")
+
+# 4) Initialize analyzer AFTER app exists
+analyzer: Optional[InterviewAnalyzer] = None
+
+@app.on_event("startup")
+async def _init_analyzer():
+    global analyzer
+    # If you need to load guidelines, do it here and pass them in
+    analyzer = InterviewAnalyzer()
+
+# --- health/debug endpoints (optional) ---
 @app.get("/healthz")
 def healthz():
     return {"ok": True, "has_openai_key": bool(os.getenv("OPENAI_API_KEY"))}
@@ -71,66 +70,63 @@ def debug_variants():
 @app.get("/debug/openai")
 async def debug_openai():
     try:
-        client = AsyncOpenAI()  # reads OPENAI_API_KEY from env
-        await client.models.list()  # auth-only; no token spend
+        client = AsyncOpenAI()  # picks up OPENAI_API_KEY
+        await client.models.list()
         return {"ok": True}
     except Exception as e:
         return JSONResponse({"ok": False, "err": str(e)}, status_code=500)
 
-# === your analyzer init above this line ===
-# analyzer = InterviewAnalyzer(...)
-
+# 5) Helper to run analysis (works for sync or async analyze())
 async def run_analysis(text: str):
-    """Run analyzer whether it's async or sync, and surface errors cleanly."""
+    if analyzer is None:
+        raise HTTPException(500, detail="analysis_error: analyzer not initialized")
     try:
         if inspect.iscoroutinefunction(analyzer.analyze):
             return await analyzer.analyze(text, audit=True, validate=True)
-        # sync -> run in threadpool so we don't block the event loop
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, lambda: analyzer.analyze(text, audit=True, validate=True))
     except Exception as e:
         logging.exception("Analysis failed")
         tb = "".join(traceback.format_exception_only(type(e), e)).strip()
-        raise HTTPException(status_code=500, detail=f"analysis_error: {tb}")
+        raise HTTPException(500, detail=f"analysis_error: {tb}")
 
+# 6) The demo endpoint (unchanged from earlier logic)
 @app.post("/demo/run")
 async def run_demo(
     request: Request,
     mode: str = Query("auto", enum=["auto", "cached", "live"]),
     variant: str = Query("sanitized", enum=["sanitized", "sensitive"]),
-    x_demo_session: str | None = Header(None),
-    authorization: str | None = Header(None),
+    x_demo_session: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
 ):
     if not x_demo_session:
         raise HTTPException(400, "Missing session header 'x-demo-session'.")
 
     text = load_demo_text(variant)
-    guidelines_key = ""  # fill with your hash if you compute one
-    key = cache_key_for(text, guidelines_key, variant)
+    key = cache_key_for(text, "", variant)
     run_id = f"demo-{variant}-{key}"
     cache_file = cache_path_for(variant)
 
-    # cached
+    # try cache
     if mode in ("auto", "cached") and cache_file.exists():
         try:
             data = json.loads(cache_file.read_text())
             if data.get("key") == key:
-                resp = JSONResponse({
+                return {
                     "run_id": run_id,
                     "variant": variant,
                     "cached": True,
                     "steps": ["Loading cached insights", "Rendering…", "Done"],
                     "insights": data["insights"],
-                })
-                return resp
+                }
         except Exception:
-            logging.exception("Failed to read cache; will run live.")
+            logging.exception("Cache read failed; running live.")
 
     # live
     steps = ["Reading transcript", "Extracting insights", "Validating schema", "Preparing export"]
     insights = await run_analysis(text)
 
-    # write cache (writable dir)
+    # cache (best effort)
     try:
         cache_file.write_text(json.dumps({
             "key": key,
@@ -139,7 +135,7 @@ async def run_demo(
             "cached_at": time.time(),
         }), encoding="utf-8")
     except Exception:
-        logging.exception("Failed writing cache (non-fatal).")
+        logging.exception("Cache write failed (non-fatal).")
 
     return {
         "run_id": run_id,
