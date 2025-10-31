@@ -28,6 +28,12 @@ VARIANT_MAP = {
     "sensitive": HERE / "data" / "interviews" / "sensitive.txt",
 }
 
+CACHE_DIR = Path(os.getenv("CACHE_DIR", "/tmp/discovery_cache"))
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+def cache_path_for(variant: str) -> Path:
+    return CACHE_DIR / f"{variant}_cache.json"
+
 def load_demo_text(variant: str) -> str:
     # distinguish bad variant vs missing file
     if variant not in VARIANT_MAP:
